@@ -1,0 +1,52 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ===============================
+# Virtual Environments
+# ===============================
+env/
+venv/
+ENV/
+.venv/
+
+# ===============================
+# Environment Variables (Secrets)
+# ===============================
+.env
+
+# ===============================
+# Django
+# ===============================
+*.log
+db.sqlite3
+/staticfiles/
+/media/
+
+# ===============================
+# Migrations (optional)
+# ===============================
+# Uncomment ONLY if you want to ignore migrations
+# */migrations/*
+# !*/migrations/__init__.py
+
+# ===============================
+# IDE / Editor
+# ===============================
+.vscode/
+.idea/
+
+# ===============================
+# OS Files
+# ===============================
+.DS_Store
+Thumbs.db
+# ===============================
+# Frontend (Node)
+# ===============================
+frontend/jeevandhara/node_modules/
+frontend/jeevandhara/.next/
+frontend/jeevandhara/out/
