@@ -19,6 +19,7 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
+    is_active = models.BooleanField(default=False)
     def __str__(self):
         return self.email
 
