@@ -7,9 +7,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import {
   validateUniversityId,
   validateUniversityEmail,
+  // local helpers left for fallback/offline mode
   registerUniversity,
   authenticateUniversity,
   registeredUniversities,
+  apiRegisterUniversity,
+  apiLoginUniversity,
 } from "@/lib/universities";
 
 type UniversityRegisterFormProps = { onRegistered: (uniId: string, password: string) => void };
@@ -23,18 +26,25 @@ const UniversityRegisterForm = ({ onRegistered }: UniversityRegisterFormProps) =
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
 
-  const tryRegister = () => {
+  const tryRegister = async () => {
     if (!name || !email || !uniId || !password) { alert('Please fill required fields'); return; }
     if (!validateUniversityEmail(email, name)) { alert('University email must contain the university name and end with .ac.in, .edu.in or .res.in'); return; }
     if (!validateUniversityId(uniId)) { alert('University ID must follow UNI-YYYY-NNNN format'); return; }
     if (password.length < 6) { alert('Password must be at least 6 characters'); return; }
     if (password !== confirm) { alert('Passwords do not match'); return; }
-    const ok = registerUniversity({ uniId, name, email, address, certificates, password });
+    // attempt backend registration first
+    let ok = false;
+    try {
+      ok = await apiRegisterUniversity({ uniId, name, email, address, certificates, password });
+    } catch (e) {
+      console.error('registration API error', e);
+      ok = false;
+    }
     if (ok) {
       alert('Registration successful — you are logged in');
       onRegistered(uniId, password);
     } else {
-      alert('Registration failed: university already registered');
+      alert('Registration failed: maybe already registered or server error');
     }
   };
 
@@ -349,16 +359,17 @@ const UniversityPortal = () => {
                 </div>
                 <Button
                   className="w-full bg-primary text-primary-foreground"
-                  onClick={() => {
+                  onClick={async () => {
                     if (!uniId || !uniPass) {
                       alert('Please enter university ID and password');
                       return;
                     }
-                    if (authenticateUniversity(uniId, uniPass)) {
+                    const ok = await apiLoginUniversity(uniId, uniPass);
+                    if (ok) {
                       setLoggedIn(true);
                       navigate('/university/dashboard');
                     } else {
-                      alert('Invalid credentials');
+                      alert('Invalid credentials or server error');
                     }
                   }}
                 >
@@ -370,11 +381,19 @@ const UniversityPortal = () => {
             <div className="p-4 bg-muted/10 rounded-md">
               <h2 className="font-semibold mb-3">University Registration</h2>
               <UniversityRegisterForm
-                onRegistered={(newUniId, pwd) => {
+                onRegistered={async (newUniId, pwd) => {
                   setUniId(newUniId);
                   setUniPass(pwd);
-                  setLoggedIn(true);
-                  navigate('/university/dashboard');
+                  // try to login via API to obtain token
+                  const ok = await apiLoginUniversity(newUniId, pwd);
+                  if (ok) {
+                    setLoggedIn(true);
+                    navigate('/university/dashboard');
+                  } else {
+                    // fallback: still navigate but warn user
+                    alert('Registered but automatic login failed, please manually sign in');
+                    navigate('/university/dashboard');
+                  }
                 }}
               />
             </div>
