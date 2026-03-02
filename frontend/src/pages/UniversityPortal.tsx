@@ -9,6 +9,7 @@ import {
   validateUniversityEmail,
   registerUniversity,
   authenticateUniversity,
+  registeredUniversities,
 } from "@/lib/universities";
 import {
   setSession,
@@ -445,22 +446,38 @@ const UniversityPortal = () => {
         );
 
       case "profile":
-        return (
-          <>
-            <h2 className="text-xl font-semibold mb-4">Profile</h2>
-            <div className="space-y-2">
-              <p>
-                <strong>University:</strong> {profileInfo.university}
-              </p>
-              <p>
-                <strong>Contact:</strong> {profileInfo.contact}
-              </p>
-              <p>
-                <strong>Phone:</strong> {profileInfo.phone}
-              </p>
-            </div>
-          </>
-        );
+        return ((() => {
+          const universityData = registeredUniversities[uniId || ""];
+          return (
+            <>
+              <h2 className="text-lg font-semibold mb-6">University Profile</h2>
+              {universityData ? (
+                <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Organization Name</p>
+                    <p className="text-base font-medium text-foreground">{universityData.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">University ID</p>
+                    <p className="text-base font-mono text-foreground">{universityData.uniId}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Email</p>
+                    <p className="text-base text-foreground">{universityData.email}</p>
+                  </div>
+                  {universityData.address && (
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Address</p>
+                      <p className="text-base text-foreground">{universityData.address}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No profile data available</p>
+              )}
+            </>
+          );
+        })());
 
       default:
         return null;

@@ -1250,9 +1250,6 @@ const AdminDashboard = () => {
                             Organization
                           </th>
                           <th className="text-left px-5 py-3 font-medium text-muted-foreground">
-                            Submitted
-                          </th>
-                          <th className="text-left px-5 py-3 font-medium text-muted-foreground">
                             Certificate
                           </th>
                           <th className="text-left px-5 py-3 font-medium text-muted-foreground">
@@ -1274,13 +1271,17 @@ const AdminDashboard = () => {
                               <td className="px-5 py-4 text-foreground font-medium">
                                 {v.name || "-"}
                               </td>
-                              <td className="px-5 py-4 text-muted-foreground">
-                                {v.submittedAt ?
-                                  new Date(v.submittedAt).toLocaleString()
-                                : "-"}
-                              </td>
-                              <td className="px-5 py-4 font-semibold text-foreground">
-                                {v.certificateName || "-"}
+                              <td className="px-5 py-4 text-foreground">
+                                {v.certificateName ?
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs bg-success/10 text-success px-2 py-1 rounded font-medium">
+                                      ✓ {v.certificateName}
+                                    </span>
+                                  </div>
+                                : <span className="text-muted-foreground">
+                                    -
+                                  </span>
+                                }
                               </td>
                               <td
                                 className="px-5 py-4"
@@ -1398,9 +1399,6 @@ const AdminDashboard = () => {
                             Organization
                           </th>
                           <th className="text-left px-5 py-3 font-medium text-muted-foreground">
-                            Submitted
-                          </th>
-                          <th className="text-left px-5 py-3 font-medium text-muted-foreground">
                             Certificate
                           </th>
                           <th className="text-left px-5 py-3 font-medium text-muted-foreground">
@@ -1422,13 +1420,17 @@ const AdminDashboard = () => {
                               <td className="px-5 py-4 text-foreground font-medium">
                                 {v.name || "-"}
                               </td>
-                              <td className="px-5 py-4 text-muted-foreground">
-                                {v.submittedAt ?
-                                  new Date(v.submittedAt).toLocaleString()
-                                : "-"}
-                              </td>
-                              <td className="px-5 py-4 font-semibold text-foreground">
-                                {v.certificateName || "-"}
+                              <td className="px-5 py-4 text-foreground">
+                                {v.certificateName ?
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs bg-success/10 text-success px-2 py-1 rounded font-medium">
+                                      ✓ {v.certificateName}
+                                    </span>
+                                  </div>
+                                : <span className="text-muted-foreground">
+                                    -
+                                  </span>
+                                }
                               </td>
                               <td
                                 className="px-5 py-4"
