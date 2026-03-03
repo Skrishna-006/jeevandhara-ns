@@ -1,0 +1,24 @@
+import { useNavigate } from "react-router-dom";
+import { useAuthGuard } from "@/lib/auth";
+import MedicalCaseForm from "@/components/MedicalCaseForm";
+
+const RegisterCase = () => {
+  // Protect this page - only NORMAL_USER
+  useAuthGuard("NORMAL_USER");
+
+  const navigate = useNavigate();
+
+  const handleFormClose = () => {
+    navigate("/dashboard");
+  };
+
+  const handleFormSuccess = () => {
+    navigate("/profile");
+  };
+
+  return (
+    <MedicalCaseForm onClose={handleFormClose} onSuccess={handleFormSuccess} />
+  );
+};
+
+export default RegisterCase;

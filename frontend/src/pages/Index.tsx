@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { casesData, formatCurrency } from "@/lib/cases";
 import { getSession, isAnyUserLoggedIn } from "@/lib/auth";
@@ -17,6 +17,8 @@ import {
   Cpu,
   Landmark,
   Award,
+  LogIn,
+  FileText,
 } from "lucide-react";
 
 // stats will be computed inside component to use live totals from casesData
@@ -113,6 +115,7 @@ const topContributors = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentSession, setCurrentSession] = useState(getSession());
 
@@ -239,48 +242,26 @@ const Index = () => {
               </p>
               <div className="flex flex-wrap gap-2">
                 {currentSession === null && (
-                  <>
-                    <Button
-                      size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-                      asChild
-                    >
-                      <Link to="/hospital">
-                        <Building2 className="w-4 h-4 mr-2" />
-                        Hospital Login
-                      </Link>
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-                      asChild
-                    >
-                      <Link to="/university">
-                        <GraduationCap className="w-4 h-4 mr-2" />
-                        University Login
-                      </Link>
-                    </Button>
-                  </>
+                  <Button
+                    size="sm"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+                    asChild
+                  >
+                    <Link to="/login">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Login
+                    </Link>
+                  </Button>
                 )}
                 {currentSession !== null && (
-                  <>
-                    <Button
-                      size="sm"
-                      disabled
-                      className="bg-muted text-muted-foreground font-semibold cursor-not-allowed"
-                    >
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Hospital Login
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled
-                      className="bg-muted text-muted-foreground font-semibold cursor-not-allowed"
-                    >
-                      <GraduationCap className="w-4 h-4 mr-2" />
-                      University Login
-                    </Button>
-                  </>
+                  <Button
+                    size="sm"
+                    disabled
+                    className="bg-muted text-muted-foreground font-semibold cursor-not-allowed"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Login
+                  </Button>
                 )}
                 <Button
                   size="sm"
@@ -379,6 +360,37 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Register Medical Case - Prominent CTA for Patients */}
+      {currentSession !== null && currentSession.userType === "normal_user" && (
+        <section className="bg-gradient-to-r from-accent/10 via-accent/5 to-accent/10 border-y border-border">
+          <div className="container py-12">
+            <div
+              className="bg-white border border-accent/20 rounded-lg p-8 hover:shadow-lg transition-shadow cursor-pointer text-center"
+              onClick={() => navigate("/register-case")}
+            >
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                <FileText className="w-6 h-6 text-accent" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+                Have a Medical Case to Fund?
+              </h2>
+              <p className="text-base text-muted-foreground mb-6 max-w-2xl mx-auto">
+                Register your medical case for AI-powered verification and
+                connect with our network of verified hospitals and university
+                donors
+              </p>
+              <Button
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+              >
+                Register Medical Case
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Stats Bar */}
       <section className="bg-card border-b border-border">
         <div className="container py-8">
@@ -456,37 +468,26 @@ const Index = () => {
           </p>
           <div className="flex justify-center gap-3">
             {currentSession === null && (
-              <>
-                <Button
-                  size="lg"
-                  className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-                  asChild
-                >
-                  <Link to="/hospital">Register Hospital</Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/university">Register University</Link>
-                </Button>
-              </>
+              <Button
+                size="lg"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+                asChild
+              >
+                <Link to="/login">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </Link>
+              </Button>
             )}
             {currentSession !== null && (
-              <>
-                <Button
-                  size="lg"
-                  disabled
-                  className="bg-muted text-muted-foreground font-semibold cursor-not-allowed"
-                >
-                  Register Hospital
-                </Button>
-                <Button
-                  size="lg"
-                  disabled
-                  variant="outline"
-                  className="cursor-not-allowed"
-                >
-                  Register University
-                </Button>
-              </>
+              <Button
+                size="lg"
+                disabled
+                className="bg-muted text-muted-foreground font-semibold cursor-not-allowed"
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </Button>
             )}
           </div>
         </div>
