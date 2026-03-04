@@ -195,7 +195,7 @@ if email_user and email_user.lower() != "none" and email_password and email_pass
     EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
     EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
     EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-    EMAIL_HOST_USER = email_user
+    EMAIL_HOST_USER = "jeevandhara@gmail.com"
     EMAIL_HOST_PASSWORD = email_password
     DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 else:

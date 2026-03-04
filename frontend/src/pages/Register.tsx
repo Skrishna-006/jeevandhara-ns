@@ -29,6 +29,7 @@ export default function Register() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [otpSuccess, setOtpSuccess] = useState("");
+  const [otpVerified, setOtpVerified] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
@@ -47,6 +48,12 @@ export default function Register() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear OTP verification when email changes
+    if (name === "email") {
+      setOtpVerified(false);
+      setOtpSent(false);
+      setOtp("");
+    }
     // Clear error for this field when user starts typing
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
@@ -63,9 +70,9 @@ export default function Register() {
     setGeneralError("");
     setFieldErrors({});
 
-    // OTP must be provided before submitting
-    if (!otp.trim()) {
-      setGeneralError("Please enter the OTP sent to your email.");
+    // OTP must be verified before submitting
+    if (!otpVerified) {
+      setGeneralError("Please verify your OTP before registering.");
       return;
     }
 
@@ -149,7 +156,7 @@ export default function Register() {
     }
     setIsVerifyingOtp(true);
     try {
-      const res = await fetch("/api/verify-otp/", {
+      const res = await fetch("http://127.0.0.1:8000/api/verify-otp/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: formData.email.trim(), otp: otp.trim() }),
@@ -157,11 +164,14 @@ export default function Register() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setOtpError(data.detail || data.message || "OTP verification failed");
+        setOtpVerified(false);
       } else {
         setOtpSuccess("OTP verified");
+        setOtpVerified(true);
       }
     } catch (err: any) {
       setOtpError(err.message || "OTP verification failed");
+      setOtpVerified(false);
     } finally {
       setIsVerifyingOtp(false);
     }

@@ -2,6 +2,7 @@ import logging
 import random
 from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
+from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -112,8 +113,24 @@ class SendOTPView(APIView):
         logger = logging.getLogger(__name__)
         logger.info(f"[OTP SENT] Email: {email} | OTP: {otp}")
         
+        # Send OTP via email
+        try:
+            subject = "Email Verification OTP"
+            message = f"Your verification OTP is: {otp}"
+            send_mail(
+                subject,
+                message,
+                None,  # Uses DEFAULT_FROM_EMAIL from settings
+                [email],
+                fail_silently=False,
+            )
+            print(f"[EMAIL SENT] OTP email sent to {email}")
+        except Exception as e:
+            logger.warning(f"[EMAIL SEND FAILED] Could not send OTP email to {email}: {str(e)}")
+            print(f"[EMAIL SEND FAILED] Could not send OTP email to {email}: {str(e)}")
+        
         return Response(
-            {"message": "OTP sent (check console logs)", "email": email},
+            {"message": "OTP sent to your email", "email": email},
             status=status.HTTP_200_OK
         )
 
