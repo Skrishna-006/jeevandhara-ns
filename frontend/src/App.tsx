@@ -80,7 +80,7 @@ const App = () => (
               }
             />
             <Route
-              path="/university/dashboard"
+              path="/university-dashboard"
               element={
                 <ProtectedRoute
                   element={<UniversityPortal />}
@@ -89,7 +89,7 @@ const App = () => (
               }
             />
             <Route
-              path="/university/payments"
+              path="/university-payments"
               element={
                 <ProtectedRoute
                   element={<PaymentHistoryPage />}
@@ -98,7 +98,7 @@ const App = () => (
               }
             />
             <Route
-              path="/university/reports"
+              path="/university-reports"
               element={
                 <ProtectedRoute
                   element={<PatientReportsPage />}
@@ -107,7 +107,7 @@ const App = () => (
               }
             />
             <Route
-              path="/university/profile"
+              path="/university-profile"
               element={
                 <ProtectedRoute
                   element={<ProfilePage />}

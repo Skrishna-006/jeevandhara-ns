@@ -13,7 +13,7 @@ const RegisterCase = () => {
   };
 
   const handleFormSuccess = () => {
-    navigate("/profile");
+    navigate("/dashboard");
   };
 
   return (
