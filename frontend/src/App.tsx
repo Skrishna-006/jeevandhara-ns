@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import MainLayout from "@/layouts/MainLayout";
+import AuthLayout from "@/layouts/AuthLayout";
 import Index from "./pages/Index";
 import VerifiedCases from "./pages/VerifiedCases";
 import UniversityPortal from "./pages/UniversityPortal";
@@ -15,15 +15,27 @@ import RegisterCase from "./pages/RegisterCase";
 import Transparency from "./pages/Transparency";
 import CaseDetail from "./pages/CaseDetail";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
-import { getSession } from "./lib/auth";
+import PaymentHistoryPage from "./pages/PaymentHistoryPage";
+import PatientReportsPage from "./pages/PatientReportsPage";
+import ProfilePage from "./pages/ProfilePage";
+import { canAccess } from "./lib/auth";
 
 const queryClient = new QueryClient();
 
 // Protected Route Component
-const ProtectedRoute = ({ element }: { element: React.ReactNode }) => {
-  const session = getSession();
-  return session ? element : <Navigate to="/" replace />;
+const ProtectedRoute = ({
+  element,
+  requiredRole,
+}: {
+  element: React.ReactNode;
+  requiredRole?: string;
+}) => {
+  if (!canAccess(requiredRole as any)) {
+    return <Navigate to="/login" replace />;
+  }
+  return element;
 };
 
 const App = () => (
@@ -32,54 +44,102 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
-          <Header />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
+        <Routes>
+          {/* Auth Layout Routes (no navbar) */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Route>
 
-              {/* Protected Routes - Redirect to Home if not logged in */}
-              <Route
-                path="/cases"
-                element={<ProtectedRoute element={<VerifiedCases />} />}
-              />
-              <Route
-                path="/cases/:id"
-                element={<ProtectedRoute element={<CaseDetail />} />}
-              />
-              <Route
-                path="/dashboard"
-                element={<ProtectedRoute element={<Dashboard />} />}
-              />
-              <Route
-                path="/register-case"
-                element={<ProtectedRoute element={<RegisterCase />} />}
-              />
-              <Route
-                path="/transparency"
-                element={<ProtectedRoute element={<Transparency />} />}
-              />
+          {/* Main Layout Routes (with navbar) */}
+          <Route element={<MainLayout />}>
+            {/* Public Routes */}
+            <Route path="/" element={<Index />} />
+            <Route path="/cases" element={<VerifiedCases />} />
+            <Route path="/cases/:id" element={<CaseDetail />} />
+            <Route path="/transparency" element={<Transparency />} />
 
-              {/* Role-specific Routes */}
-              <Route
-                path="/university/*"
-                element={<ProtectedRoute element={<UniversityPortal />} />}
-              />
-              <Route
-                path="/admin"
-                element={<ProtectedRoute element={<AdminDashboard />} />}
-              />
-              <Route
-                path="/admin/medical-case/:id"
-                element={<ProtectedRoute element={<AdminCaseDetail />} />}
-              />
+            {/* Protected Routes - General User */}
+            <Route
+              path="/dashboard"
+              element={<ProtectedRoute element={<Dashboard />} />}
+            />
+            <Route
+              path="/register-case"
+              element={<ProtectedRoute element={<RegisterCase />} />}
+            />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+            {/* Protected Routes - University */}
+            <Route
+              path="/university"
+              element={
+                <ProtectedRoute
+                  element={<UniversityPortal />}
+                  requiredRole="university"
+                />
+              }
+            />
+            <Route
+              path="/university/dashboard"
+              element={
+                <ProtectedRoute
+                  element={<UniversityPortal />}
+                  requiredRole="university"
+                />
+              }
+            />
+            <Route
+              path="/university/payments"
+              element={
+                <ProtectedRoute
+                  element={<PaymentHistoryPage />}
+                  requiredRole="university"
+                />
+              }
+            />
+            <Route
+              path="/university/reports"
+              element={
+                <ProtectedRoute
+                  element={<PatientReportsPage />}
+                  requiredRole="university"
+                />
+              }
+            />
+            <Route
+              path="/university/profile"
+              element={
+                <ProtectedRoute
+                  element={<ProfilePage />}
+                  requiredRole="university"
+                />
+              }
+            />
+
+            {/* Protected Routes - Admin */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute
+                  element={<AdminDashboard />}
+                  requiredRole="admin"
+                />
+              }
+            />
+            <Route
+              path="/admin/medical-case/:id"
+              element={
+                <ProtectedRoute
+                  element={<AdminCaseDetail />}
+                  requiredRole="admin"
+                />
+              }
+            />
+
+            {/* Catch-all 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

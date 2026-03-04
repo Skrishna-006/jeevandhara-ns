@@ -3,7 +3,7 @@ import { Shield, Menu, X, LogIn, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { getSession, clearSession } from "@/lib/auth";
+import { isAuthenticated, logout, getUserRole } from "@/lib/auth";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -16,34 +16,34 @@ const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [currentSession, setCurrentSession] = useState(getSession());
+  const [authenticated, setAuthenticated] = useState(isAuthenticated());
+  const [userRole, setUserRole] = useState(getUserRole());
 
+  // Listen for auth state changes
   useEffect(() => {
-    const onSessionChange = (e: any) => {
-      setCurrentSession(e.detail);
+    const handleAuthChange = () => {
+      setAuthenticated(isAuthenticated());
+      setUserRole(getUserRole());
     };
-    window.addEventListener("jh:session-changed", onSessionChange);
-    return () =>
-      window.removeEventListener("jh:session-changed", onSessionChange);
+
+    window.addEventListener("storage", handleAuthChange);
+    return () => window.removeEventListener("storage", handleAuthChange);
   }, []);
 
-  const isLoggedIn = currentSession !== null;
-
   const handleLogout = () => {
-    clearSession();
-    setCurrentSession(null);
+    logout();
     setMobileOpen(false);
-    navigate("/");
   };
 
-  const getPanelUrl = () => {
-    switch (currentSession?.userType) {
+  const getDashboardUrl = () => {
+    switch (userRole) {
       case "university":
-        return "/university";
+        return "/university-dashboard";
       case "admin":
         return "/admin";
+      case "user":
       default:
-        return "/";
+        return "/dashboard";
     }
   };
 
@@ -83,159 +83,140 @@ const Header = () => {
               );
             }
 
-            // Other links disabled if not logged in
+            // Protected links - only show if authenticated
+            if (!authenticated) {
+              return null;
+            }
+
             return (
-              <div
+              <Link
                 key={link.to}
-                title={!isLoggedIn ? "Login required" : ""}
+                to={link.to}
                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  isLoggedIn ?
-                    "bg-accent text-accent-foreground hover:bg-white hover:text-accent cursor-pointer"
-                  : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                  location.pathname === link.to ?
+                    "bg-accent text-accent-foreground"
+                  : "text-foreground hover:bg-accent/10"
                 }`}
-                onClick={() => {
-                  if (isLoggedIn) {
-                    navigate(link.to);
-                  } else {
-                    toast({
-                      title: "Login Required",
-                      description: "Please login to access this page.",
-                      variant: "destructive",
-                    });
-                  }
-                }}
               >
                 {link.label}
-              </div>
+              </Link>
             );
           })}
-          {isLoggedIn && (
-            <Button
-              size="sm"
-              className="bg-accent text-accent-foreground hover:bg-white hover:text-accent"
-              asChild
-            >
-              <Link to={getPanelUrl()}>
-                {currentSession?.userType === "university" &&
-                  "University Panel"}
-                {currentSession?.userType === "admin" && "Admin Panel"}
-              </Link>
-            </Button>
-          )}
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          {isLoggedIn ?
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-destructive hover:bg-destructive/10 border-destructive/30"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          : <Button
-              size="sm"
-              className="bg-accent text-accent-foreground hover:bg-white hover:text-accent"
-              asChild
-            >
-              <Link to="/login">
-                <LogIn className="w-4 h-4 mr-2" />
-                Login
+          {authenticated ?
+            <>
+              <Link to={getDashboardUrl()}>
+                <Button variant="outline" size="sm">
+                  Dashboard
+                </Button>
               </Link>
-            </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </>
+          : <>
+              <Link to="/login">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <LogIn className="w-4 h-4" />
+                  Login
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button size="sm">Register</Button>
+              </Link>
+            </>
           }
         </div>
 
+        {/* Mobile Menu Button */}
         <button
-          className="md:hidden p-2 text-muted-foreground"
+          className="md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ?
-            <X className="w-5 h-5" />
-          : <Menu className="w-5 h-5" />}
+            <X className="w-6 h-6" />
+          : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card p-4 space-y-2">
-          {navLinks.map((link) => {
-            // Home link always enabled
-            if (link.to === "/") {
+        <div className="md:hidden border-t border-border">
+          <div className="container py-4 space-y-2">
+            {navLinks.map((link) => {
+              if (link.to !== "/" && !authenticated) {
+                return null;
+              }
               return (
                 <Link
                   key={link.to}
                   to={link.to}
+                  className={`block px-3 py-2 rounded-md text-sm font-medium ${
+                    location.pathname === link.to ?
+                      "bg-accent text-accent-foreground"
+                    : "text-foreground hover:bg-accent/10"
+                  }`}
                   onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   {link.label}
                 </Link>
               );
-            }
+            })}
 
-            // Other links disabled if not logged in
-            return (
-              <div
-                key={link.to}
-                onClick={() => {
-                  if (isLoggedIn) {
-                    navigate(link.to);
-                    setMobileOpen(false);
-                  } else {
-                    toast({
-                      title: "Login Required",
-                      description: "Please login to access this page.",
-                      variant: "destructive",
-                    });
-                  }
-                }}
-                title={!isLoggedIn ? "Login to access" : ""}
-                className={`block px-3 py-2 text-sm font-medium rounded-md ${
-                  isLoggedIn ?
-                    "text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
-                  : "text-muted-foreground/40 opacity-40 cursor-not-allowed"
-                }`}
-              >
-                {link.label}
-              </div>
-            );
-          })}
-          {isLoggedIn && (
-            <Button
-              size="sm"
-              className="w-full bg-accent text-accent-foreground hover:bg-white hover:text-accent"
-              asChild
-            >
-              <Link to={getPanelUrl()} onClick={() => setMobileOpen(false)}>
-                {currentSession?.userType === "university" &&
-                  "University Panel"}
-                {currentSession?.userType === "admin" && "Admin Panel"}
-              </Link>
-            </Button>
-          )}
-          {isLoggedIn ?
-            <Button
-              size="sm"
-              className="w-full text-destructive hover:bg-destructive/10 border border-destructive/30"
-              variant="outline"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
-          : <Button
-              size="sm"
-              className="w-full bg-accent text-accent-foreground hover:bg-white hover:text-accent"
-              asChild
-            >
-              <Link to="/login" onClick={() => setMobileOpen(false)}>
-                <LogIn className="w-4 h-4 mr-2" />
-                Login
-              </Link>
-            </Button>
-          }
+            {authenticated && (
+              <>
+                <Link
+                  to={getDashboardUrl()}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    size="sm"
+                  >
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button
+                  variant="destructive"
+                  className="w-full justify-start gap-2"
+                  onClick={handleLogout}
+                  size="sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </>
+            )}
+
+            {!authenticated && (
+              <>
+                <Link to="/login" onClick={() => setMobileOpen(false)}>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    size="sm"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)}>
+                  <Button className="w-full justify-start" size="sm">
+                    Register
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       )}
     </header>

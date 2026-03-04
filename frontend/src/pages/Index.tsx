@@ -19,6 +19,7 @@ import {
   Award,
   LogIn,
   FileText,
+  Plus,
 } from "lucide-react";
 
 // stats will be computed inside component to use live totals from casesData
@@ -274,6 +275,17 @@ const Index = () => {
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </Link>
                 </Button>
+                {currentSession !== null &&
+                  currentSession.userType === "user" && (
+                    <Button
+                      size="sm"
+                      className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+                      onClick={() => navigate("/register-case")}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Register Case
+                    </Button>
+                  )}
               </div>
             </div>
 

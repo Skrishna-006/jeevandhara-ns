@@ -35,7 +35,10 @@ def medical_cases(request):
         return Response(serializer.data)
 
     # POST path
-    if not request.user.is_authenticated or getattr(request.user, 'role', '') != 'NORMAL_USER':
+    user_role = getattr(request.user, 'role', None)
+    
+    if not request.user.is_authenticated or user_role != 'NORMAL_USER':
+        print(f"[DEBUG] Case creation denied - role={user_role}, is_authenticated={request.user.is_authenticated}")
         return Response({'detail': 'Only normal users can submit cases'}, status=status.HTTP_403_FORBIDDEN)
 
     data = request.data.copy()
@@ -90,8 +93,14 @@ def get_user_medical_cases(request):
     Get all medical cases belonging to the logged-in user.
     Only NORMAL_USER can access.
     """
-    if not getattr(request.user, 'role', '') == 'NORMAL_USER':
-        return Response({'detail': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+    # Get role from either token claims or user model
+    user_role = getattr(request.user, 'role', None)
+    
+    if user_role != 'NORMAL_USER':
+        print(f"[DEBUG] Access denied - role={user_role}, should be NORMAL_USER")
+        return Response({'detail': 'Not authorized - only normal users can access their cases'}, status=status.HTTP_403_FORBIDDEN)
+    
+    print(f"[DEBUG] Fetching cases for user {request.user.email} with role {user_role}")
     cases = MedicalCase.objects.filter(user=request.user)
     serializer = MedicalCaseSerializer(cases, many=True)
     return Response(serializer.data)

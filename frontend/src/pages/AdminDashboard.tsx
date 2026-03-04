@@ -41,6 +41,10 @@ import {
   getLoggedInUserId,
   useAuthGuard,
   logout,
+  setTokens,
+  setUserRole,
+  setUserEmail,
+  getAccessToken,
 } from "@/lib/auth";
 
 // Return color classes based on AI score thresholds
@@ -137,7 +141,7 @@ const AdminDashboard = () => {
 
   // when the universities tab is opened fetch live data from backend
   useEffect(() => {
-    if (activeSection === "universities") {
+    if (loggedIn && activeSection === "universities") {
       fetchApprovedUniversities()
         .then((data) => {
           if (data && data.length > 0) {
@@ -148,7 +152,7 @@ const AdminDashboard = () => {
           console.error("error fetching approved universities", err);
         });
     }
-  }, [activeSection]);
+  }, [activeSection, loggedIn]);
 
   // router
   const navigate = useNavigate();
@@ -164,11 +168,16 @@ const AdminDashboard = () => {
 
   // Fetch trusted hospitals from backend
   useEffect(() => {
+    if (!loggedIn) {
+      // Don't fetch if not logged in
+      return;
+    }
+
     const fetchHospitals = async () => {
       setHospitalsLoading(true);
       setHospitalsError(null);
       try {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = getAccessToken();
         if (!accessToken) {
           setHospitalsError("No access token found. Please login again.");
           setHospitalsLoading(false);
@@ -208,15 +217,20 @@ const AdminDashboard = () => {
     };
 
     fetchHospitals();
-  }, []);
+  }, [loggedIn]);
 
   // Fetch all medical cases for admin
   useEffect(() => {
+    if (!loggedIn) {
+      // Don't fetch if not logged in
+      return;
+    }
+
     const fetchCases = async () => {
       setCasesLoading(true);
       setCasesError(null);
       try {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = getAccessToken();
         if (!accessToken) {
           setCasesError("No access token found. Please login again.");
           setCasesLoading(false);
@@ -243,7 +257,7 @@ const AdminDashboard = () => {
       }
     };
     fetchCases();
-  }, []);
+  }, [loggedIn]);
 
   const generateAIScore = (caseData: any) => {
     // use existing value if provided, otherwise fallback random
@@ -288,7 +302,7 @@ const AdminDashboard = () => {
     setMailSuccess(null);
 
     try {
-      const accessToken = localStorage.getItem("access_token");
+      const accessToken = getAccessToken();
       if (!accessToken) {
         throw new Error("No access token. Please login again.");
       }
@@ -344,7 +358,7 @@ const AdminDashboard = () => {
     setMailSuccess(null);
 
     try {
-      const accessToken = localStorage.getItem("access_token");
+      const accessToken = getAccessToken();
       if (!accessToken) {
         throw new Error("No access token. Please login again.");
       }
@@ -416,7 +430,7 @@ const AdminDashboard = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            username: "admin",
+            email: "admin@example.com",
             password: adminPassword,
           }),
         });
@@ -424,17 +438,18 @@ const AdminDashboard = () => {
         if (!res.ok) {
           console.warn("Admin JWT login failed", data);
           setLoginError("Backend authentication failed. Please try again.");
-        } else {
-          localStorage.setItem("access_token", data.access);
-          localStorage.setItem("refresh_token", data.refresh);
-          localStorage.setItem("user_role", data.role || "ADMIN");
+          return;
         }
+        // Only set loggedIn to true if login was successful
+        setTokens(data.access, data.refresh);
+        setUserRole(data.role);
+        setUserEmail(data.email);
+        setLoggedIn(true);
+        setSession("admin", "ADM-001");
       } catch (err) {
         console.error("Admin login request failed", err);
         setLoginError("Network error during login");
       }
-      setLoggedIn(true);
-      setSession("admin", "ADM-001");
     };
 
     return (

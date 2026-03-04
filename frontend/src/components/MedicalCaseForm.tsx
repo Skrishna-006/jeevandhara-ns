@@ -58,7 +58,7 @@ export default function MedicalCaseForm({
     const fetchHospitals = async () => {
       setHospitalsLoading(true);
       try {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = localStorage.getItem("jh_access_token");
         if (!accessToken) {
           setError("No access token found");
           setHospitalsLoading(false);
@@ -162,7 +162,7 @@ export default function MedicalCaseForm({
     }
 
     try {
-      const accessToken = localStorage.getItem("access_token");
+      const accessToken = localStorage.getItem("jh_access_token");
       if (!accessToken) {
         setError("No access token found. Please login again.");
         setLoading(false);

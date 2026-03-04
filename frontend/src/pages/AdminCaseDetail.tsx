@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthGuard } from "@/lib/auth";
 
 const AdminCaseDetail = () => {
-  useAuthGuard("ADMIN");
+  useAuthGuard("admin");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [caseData, setCaseData] = useState<any>(null);
@@ -20,7 +20,7 @@ const AdminCaseDetail = () => {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("access_token");
+      const token = localStorage.getItem("jh_access_token");
       if (!token) {
         setError("No access token");
         setLoading(false);

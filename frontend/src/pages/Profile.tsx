@@ -15,8 +15,8 @@ interface MedicalCase {
 }
 
 export default function Profile() {
-  // Protect this page - only NORMAL_USER
-  useAuthGuard("NORMAL_USER");
+  // Protect this page - only normal users (role="user")
+  useAuthGuard("user");
 
   const navigate = useNavigate();
   const [cases, setCases] = useState<MedicalCase[]>([]);
@@ -29,7 +29,7 @@ export default function Profile() {
       setLoading(true);
       setError(null);
       try {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = localStorage.getItem("jh_access_token");
         if (!accessToken) {
           setError("No access token found");
           setLoading(false);

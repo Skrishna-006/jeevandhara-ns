@@ -3,8 +3,8 @@ import { useAuthGuard } from "@/lib/auth";
 import MedicalCaseForm from "@/components/MedicalCaseForm";
 
 const RegisterCase = () => {
-  // Protect this page - only NORMAL_USER
-  useAuthGuard("NORMAL_USER");
+  // Protect this page - only normal users (role="user")
+  useAuthGuard("user");
 
   const navigate = useNavigate();
 

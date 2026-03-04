@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-f95k@l!yqol)o=si+d6z(p@7i&f^gjo3&1*=u^)mrrkj+wxqr-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', 'testserver']
 
 # gemini API keys - set these in .env file at project root
 GEMINI_API_KEY_text_extractor = os.getenv("GEMINI_API_KEY_text_extractor")
@@ -168,9 +168,9 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # REST framework configuration
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'accounts.authentication.CustomJWTAuthentication',
+    ],
 }
 
 from datetime import timedelta
@@ -183,11 +183,24 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True
 # Alternatively restrict: CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://localhost:5173']
 # EMAIL CONFIGURATION
-# Configure SMTP for sending emails
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+# Use console backend for development (prints emails to console instead of sending)
+# For production, set EMAIL_BACKEND to 'django.core.mail.backends.smtp.EmailBackend' and configure Gmail
+email_user = os.getenv("EMAIL_HOST_USER", "").strip()
+email_password = os.getenv("EMAIL_HOST_PASSWORD", "").strip()
+
+# Use console backend if credentials are not properly configured
+if email_user and email_user.lower() != "none" and email_password and email_password.lower() != "none":
+    # Production: Use SMTP with credentials
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+    EMAIL_HOST_USER = email_user
+    EMAIL_HOST_PASSWORD = email_password
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+else:
+    # Development: Use console backend (emails print to console)
+    print("⚠️  Email credentials not configured. Using console backend for testing.")
+    print("    Emails will be printed to the console instead of being sent.")
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "admin@jeevandhara.example.com")
